@@ -18,7 +18,7 @@ async function obtenerPedidos(req , res){
 
         logger.info(`URL :  ${url}`);
         
-        let response = await axios.get( url, {
+        const response = await axios.get( url, {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Application-Key': '3d137dea1d13220aa9a10ee57d69f6b30d247f28',
@@ -27,7 +27,7 @@ async function obtenerPedidos(req , res){
             }
         });
 
-       response = [];
+       
         if(response != undefined && response.data ){
             let pedidosList  = response.data;
             
