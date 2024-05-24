@@ -18,7 +18,7 @@ async function obtenerPedidos(req , res){
 
         logger.info(`URL :  ${url}`);
         
-        const response = await axios.get( url, {
+        let response = await axios.get( url, {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Application-Key': '3d137dea1d13220aa9a10ee57d69f6b30d247f28',
@@ -27,7 +27,7 @@ async function obtenerPedidos(req , res){
             }
         });
 
-       
+       response = [];
         if(response != undefined && response.data ){
             let pedidosList  = response.data;
             
@@ -73,10 +73,9 @@ async function obtenerPedidos(req , res){
        
 
     }catch (error) {
-
-        logger.error(`Error al obtener pedidos funcion obtenerPedidos[1] ${JSON.stringify(error.message)}`);
-        
-        throw error;
+        // Manejamos cualquier error ocurrido durante el proceso
+        logger.error(`Error en obtenerOrdenServicio: ${error.message}`);
+        res.status(500).json({ error: `Error en el servidor [obtener-pedidos-ms] :  ${error.message}`  });
     }
 }
 
