@@ -1,4 +1,5 @@
 const sql = require('mssql');
+require('dotenv').config();
 
 async function connectToDatabase(databaseName) {
     const config = {
