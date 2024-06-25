@@ -1,5 +1,6 @@
 const axios = require('axios');
 const logger = require('../config/logger.js');
+require('dotenv').config();
 
 
 
@@ -21,8 +22,8 @@ async function obtenerPedidos(req , res){
         const response = await axios.get( url, {
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Application-Key': '3d137dea1d13220aa9a10ee57d69f6b30d247f28',
-                'Access-Env': 'HOMOLOGATION',
+                'Access-Application-Key': process.env.PRODUCCION,
+                'Access-Env': process.env.PROD_ACCES,
                 'X-Custom-Header': 'value'
             }
         });
