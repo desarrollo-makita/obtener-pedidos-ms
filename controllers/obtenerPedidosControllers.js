@@ -22,8 +22,8 @@ async function obtenerPedidos(req , res){
         const response = await axios.get( url, {
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Application-Key': process.env.PRODUCCION,
-                'Access-Env': process.env.PROD_ACCES,
+                'Access-Application-Key': process.env.DESARROLLO,
+                'Access-Env': process.env.DEV_ACCES,
                 'X-Custom-Header': 'value'
             }
         });
