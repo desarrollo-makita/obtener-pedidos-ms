@@ -1,6 +1,7 @@
-const axios = require('axios');
-const logger = require('../config/logger.js');
-require('dotenv').config();
+const axios = require("axios");
+const logger = require("../config/logger.js");
+require("dotenv").config();
+
 
 
 
@@ -9,78 +10,92 @@ require('dotenv').config();
  * Obtenemos Pedidos en estado de exportacion false
  * @returns 
  */
-async function obtenerPedidos(req , res){
-    try{
-       
-        logger.info(`Iniciamos la funcion obtenerPedidos`);
-        let data;
-      
-        const url = `http://api2.telecontrol.com.br/posvenda-pedido/pedidos/exportado/false`;
+async function obtenerPedidos(req, res) {
+  try {
+    logger.info("Iniciamos la función obtenerPedidos");
+    let data;
 
-        logger.info(`URL :  ${url}`);
-        
-        const response = await axios.get( url, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Application-Key': process.env.PRODUCCION,
-                'Access-Env': process.env.PROD_ACCES,
-                'X-Custom-Header': 'value'
-            }
+    // Obtener la fecha actual y calcular la fecha 60 días antes
+    const fechaActual = new Date();
+    const fechaInicio = new Date();
+    fechaInicio.setDate(fechaActual.getDate() - 20);
+
+    // Formatear las fechas a "YYYY-MM-DD"
+    const formatoFecha = (fecha) =>
+      fecha.toISOString().split('T')[0];
+
+    const fechaInicioStr = formatoFecha(fechaInicio);
+    const fechaFinStr = formatoFecha(fechaActual);
+
+    // Construir la URL
+    const url = `http://api2.telecontrol.com.br/posvenda-pedido/pedidos/dataInicial/${fechaInicioStr}/dataFinal/${fechaFinStr}/exportado/false`;
+
+    logger.info(`URL : ${url}`);
+
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Application-Key": process.env.PRODUCCION,
+        "Access-Env": process.env.PROD_ACCES,
+        "X-Custom-Header": "value",
+      },
+    });
+
+    if (response && response.data) {
+      const pedidosList = response.data;
+
+      if (pedidosList.length > 0) {
+        const pedidosSet = new Set();
+        const osSet = new Set();
+
+        pedidosList.forEach((obj) => {
+          if (obj.itens && obj.itens.length > 0) {
+            obj.itens.forEach((item) => {
+              if (item.os) {
+                osSet.add(item);
+                pedidosSet.add(obj);
+              }
+            });
+          }
         });
 
-       
-        if(response != undefined && response.data ){
-            let pedidosList  = response.data;
-            
-            if(pedidosList.length >  0 ){
-                // Se separan datos para una mejor manipulacion pedidos , os(ordenServicio)
-                const pedidosSet = new Set();
-                const osSet = new Set();
-                
-                //Generamos un arreglo con los pedidos que tienen Orden de Servicio relacionado a un pedido.Los pedidos que no tienen orden de servicio no se agregan a este nuevo arreglo. 
-                pedidosList.forEach(obj => {
-                    if (obj.itens && obj.itens.length > 0) {
-                        obj.itens.forEach(item => {
-                            if (item.os) {
-                                osSet.add(item);
-                                pedidosSet.add(obj);
-                            }
-                        });
-                    }
-                });
-        
-                let osList = [...osSet];
-                
-                let listaPedidos =[...pedidosSet];
-    
-                listaPedidos.forEach(pedido => {
-                    pedido.tipoDocumento = pedido.codigo === 'VEN' ? 'NOTA DE VENTA' : 'NOTA DE VTA INTERNA';
-                });
-                
-                data = {itemList : osList , pedidos : listaPedidos };
+        const osList = [...osSet];
+        const listaPedidos = [...pedidosSet];
 
-                logger.info(`Fin de la funcion obtenerPedidos :  ${JSON.stringify(data)}`);
-        
-                res.status(response.status).json(data);
-                
-            }
-        }else{
-            data = {mensaje : 'No se encontraron pedidos pendientes para procesar'};
-            logger.info(`Fin de la funcion obtenerPedidos[1] :  ${JSON.stringify(data)}`);
-            res.status(404).json(data);
+        listaPedidos.forEach((pedido) => {
+          pedido.tipoDocumento =
+            pedido.codigo === "VEN" ? "NOTA DE VENTA" : "NOTA DE VTA INTERNA";
+        });
 
-        }
-        
-       
+        data = { itemList: osList, pedidos: listaPedidos };
 
-    }catch (error) {
-        // Manejamos cualquier error ocurrido durante el proceso
-        logger.error(`Error en obtenerOrdenServicio: ${error.message}`);
-        res.status(500).json({ error: `Error en el servidor [obtener-pedidos-ms] :  ${error.message}`  });
+        logger.info(
+          `Fin de la función obtenerPedidos: ${JSON.stringify(data)}`
+        );
+
+        res.status(response.status).json(data);
+      } else {
+        data = { mensaje: "No se encontraron pedidos pendientes para procesar" };
+        logger.info(
+          `Fin de la función obtenerPedidos[1]: ${JSON.stringify(data)}`
+        );
+        res.status(404).json(data);
+      }
+    } else {
+      data = { mensaje: "No se encontraron pedidos pendientes para procesar" };
+      logger.info(
+        `Fin de la función obtenerPedidos[1]: ${JSON.stringify(data)}`
+      );
+      res.status(404).json(data);
     }
+  } catch (error) {
+    logger.error(`Error en obtenerPedidos: ${error.message}`);
+    res.status(500).json({
+      error: `Error en el servidor [obtener-pedidos-ms]: ${error.message}`,
+    });
+  }
 }
 
-
 module.exports = {
-    obtenerPedidos
+  obtenerPedidos
 };
