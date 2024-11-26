@@ -1,0 +1,78 @@
+# Definición del ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dashboard-admin
+  namespace: kubernetes-dashboard
+
+---
+# Definición del RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dashboard-admin
+  namespace: kubernetes-dashboard
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: dashboard-admin
+    namespace: kubernetes-dashboard
+
+---
+# Definición del Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obtener-pedidos-ms
+  namespace: kubernetes-dashboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: obtener-pedidos-ms
+  template:
+    metadata:
+      labels:
+        app: obtener-pedidos-ms
+    spec:
+      serviceAccountName: dashboard-admin # Asigna el ServiceAccount
+      containers:
+        - name: obtener-pedidos-ms
+          image: obtener-pedidos-ms:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3006
+          env:
+            - name: DB_HOST
+              value: "db-service"
+            - name: DB_USER
+              value: "quality"
+            - name: DB_PASS
+              value: "Qu@lity"
+            - name: DB_SERVER
+              value: "172.16.1.95"
+            - name: PORT
+              value: "3006"
+            - name: PRODUCCION
+              value: "588b56a33c722da5e49170a311e872d9ee967291"
+            - name: PROD_ACCES
+              value: "PRODUCTION"
+
+---
+# Definición del Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: obtener-pedidos-ms
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort
+  ports:
+    - port: 3006
+      targetPort: 3006
+      nodePort: 32541
+  selector:
+    app: obtener-pedidos-ms
