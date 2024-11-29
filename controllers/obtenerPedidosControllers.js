@@ -18,7 +18,7 @@ async function obtenerPedidos(req, res) {
     // Obtener la fecha actual y calcular la fecha 60 días antes
     const fechaActual = new Date();
     const fechaInicio = new Date();
-    fechaInicio.setDate(fechaActual.getDate() - 8);
+    fechaInicio.setDate(fechaActual.getDate() - 12);
 
     // Formatear las fechas a "YYYY-MM-DD"
     const formatoFecha = (fecha) =>
